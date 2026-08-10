@@ -1,17 +1,23 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Instrument_Serif, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 
-const spaceGroteskHeading = Space_Grotesk({subsets:['latin'],variable:'--font-heading'});
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: "400",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Cadence",
@@ -27,10 +33,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn( jetbrainsMono.variable, "font-sans", inter.variable, spaceGroteskHeading.variable)}
+      className={`${manrope.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body>
+      <body className="selection:bg-accent selection:text-accent-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
