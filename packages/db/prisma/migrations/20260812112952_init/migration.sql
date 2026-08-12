@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "AuthMethod" AS ENUM ('email', 'google');
+CREATE TYPE "AuthMethod" AS ENUM ('EMAIL', 'GOOGLE');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -17,8 +17,8 @@ CREATE TABLE "User" (
 CREATE TABLE "Profile" (
     "user_id" TEXT NOT NULL,
     "avatar_url" TEXT,
-    "first_name" TEXT,
-    "last_name" TEXT,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
 
     CONSTRAINT "Profile_pkey" PRIMARY KEY ("user_id")
 );

@@ -1,3 +1,8 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -21,11 +26,11 @@ model Profile {
   user_id    String  @id
   user       User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   avatar_url String?
-  first_name String?
-  last_name  String?
+  first_name String
+  last_name  String
 }
 
 enum AuthMethod {
-  email
-  google
+  EMAIL
+  GOOGLE
 }
