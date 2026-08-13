@@ -17,9 +17,17 @@ const signUpSchema = z.object({
 const signInSchema = z.object({
   email: z.email("Enter a valid email address"),
 });
+const verifyOtpSchema = z.object({
+  otp: z
+    .string()
+    .length(6, "Enter the 6-digit verification code")
+    .regex(/^\d+$/, "Verification code must contain only numbers"),
+});
+
+type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>;
 
 type SignInFormValues = z.infer<typeof signInSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-export { signInSchema, signUpSchema };
-export type { SignInFormValues, SignUpFormValues };
+export { signInSchema, signUpSchema, verifyOtpSchema };
+export type { SignInFormValues, SignUpFormValues, VerifyOtpFormValues };

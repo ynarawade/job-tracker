@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -11,25 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import signUpAction from "@/features/auth/actions/signup.action";
 import {
   signUpSchema,
   type SignUpFormValues,
 } from "@/features/auth/validators/auth.schema";
-
-async function dummySignUpAction(
-  values: SignUpFormValues
-): Promise<{ success: boolean; error?: string }> {
-  await new Promise((r) => setTimeout(r, 1200));
-  return { success: true };
-}
+import { toast } from "sonner";
 
 function SignUpPage() {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -42,18 +38,26 @@ function SignUpPage() {
   });
 
   async function onSubmit(values: SignUpFormValues) {
-    setServerError(null);
     setIsSubmitting(true);
 
     try {
-      const result = await dummySignUpAction(values);
+      const result = await signUpAction(values);
 
       if (!result.success) {
-        setServerError(result.error ?? "Something went wrong. Try again.");
+        // Field-level errors (validation failures) — map onto the form
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(({ field, message }) => {
+            setError(field as keyof SignUpFormValues, { message });
+          });
+          return;
+        }
+        toast.error(result.message);
         return;
       }
+
+      router.push(`/verify-otp`);
     } catch {
-      setServerError("Couldn't reach the server. Try again.");
+      toast.error("Couldn't reach the server. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -156,15 +160,6 @@ function SignUpPage() {
                 </FieldError>
               )}
             </Field>
-
-            {serverError && (
-              <p
-                role="alert"
-                className="border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
-              >
-                {serverError}
-              </p>
-            )}
 
             <Button
               type="submit"

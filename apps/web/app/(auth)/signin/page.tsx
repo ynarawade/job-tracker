@@ -9,26 +9,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import loginAction from "@/features/auth/actions/signin.action";
 import {
   signInSchema,
   type SignInFormValues,
 } from "@/features/auth/validators/auth.schema";
 import { ArrowRight, Loader2 } from "lucide-react";
-
-async function dummySignInAction(
-  values: SignInFormValues
-): Promise<{ success: boolean; error?: string }> {
-  await new Promise((r) => setTimeout(r, 1200));
-  return { success: true };
-}
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function SignInPage() {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -39,18 +35,26 @@ function SignInPage() {
   });
 
   async function onSubmit(values: SignInFormValues) {
-    setServerError(null);
     setIsSubmitting(true);
 
     try {
-      const result = await dummySignInAction(values);
+      const result = await loginAction(values);
 
       if (!result.success) {
-        setServerError(result.error ?? "Something went wrong. Try again.");
+        // Field-level errors (validation failures) — map onto the form
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(({ field, message }) => {
+            setError(field as keyof SignInFormValues, { message });
+          });
+          return;
+        }
+        toast.error(result.message);
         return;
       }
+
+      router.push(`/verify-otp`);
     } catch {
-      setServerError("Couldn't reach the server. Try again.");
+      toast.error("Couldn't reach the server. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,15 +103,6 @@ function SignInPage() {
                 </FieldError>
               )}
             </Field>
-
-            {serverError && (
-              <p
-                role="alert"
-                className="border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
-              >
-                {serverError}
-              </p>
-            )}
 
             <Button
               type="submit"

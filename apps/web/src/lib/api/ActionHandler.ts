@@ -1,5 +1,5 @@
 import { ApiError } from "@/lib/api/ApiError";
-import ApiResponse from "@/lib/api/ApiResponse";
+import { createApiResponse, type ApiResponse } from "@/lib/api/ApiResponse";
 
 type ActionFn<Args extends unknown[], T> = (
   ...args: Args
@@ -13,7 +13,7 @@ function actionHandler<Args extends unknown[], T>(
       return await fn(...args);
     } catch (err) {
       if (err instanceof ApiError) {
-        return new ApiResponse<T>(
+        return createApiResponse<T>(
           err.statusCode,
           err.message,
           null,
@@ -21,12 +21,11 @@ function actionHandler<Args extends unknown[], T>(
         );
       }
 
-      // Unexpected error — log server-side, never leak internals to client
       console.error("[actionHandler] Unexpected error:", err);
-      return new ApiResponse<T>(
+
+      return createApiResponse<T>(
         500,
-        "Something went wrong. Please try again.",
-        null
+        "Something went wrong. Please try again."
       );
     }
   };
