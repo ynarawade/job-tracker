@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -16,34 +16,17 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import {
+  resendOtpAction,
+  verifyOtpAction,
+} from "@/features/auth/actions/otp.action";
+import {
   verifyOtpSchema,
   type VerifyOtpFormValues,
 } from "@/features/auth/validators/auth.schema";
 import { toast } from "sonner";
 
-async function dummyVerifyOtpAction(
-  values: VerifyOtpFormValues
-): Promise<{ success: boolean; error?: string }> {
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-
-  return { success: true };
-}
-
-async function dummyResendOtpAction(): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  return { success: true };
-}
-
 function VerifyOtp() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const email = searchParams.get("email");
-  const purpose = searchParams.get("purpose") ?? "signup";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -85,14 +68,15 @@ function VerifyOtp() {
     setIsSubmitting(true);
 
     try {
-      const result = await dummyVerifyOtpAction(values);
+      const result = await verifyOtpAction(values);
 
       if (!result.success) {
         setError("otp", {
-          message: result.error ?? "Invalid verification code",
+          message: result.message ?? "Invalid verification code",
         });
         return;
       }
+      toast.success(result.message);
 
       router.push("/dashboard");
     } catch {
@@ -108,13 +92,12 @@ function VerifyOtp() {
     setIsResending(true);
 
     try {
-      const result = await dummyResendOtpAction();
+      const result = await resendOtpAction();
 
       if (!result.success) {
-        toast.error(result.error ?? "Couldn't resend the code.");
+        toast.error(result.message ?? "Couldn't resend the code.");
         return;
       }
-
       setResendCooldown(30);
       setValue("otp", "");
       toast.success("A new verification code has been sent.");
@@ -125,15 +108,13 @@ function VerifyOtp() {
     }
   }
 
-  const backHref = purpose === "signin" ? "/signin" : "/signup";
-
   return (
     <main className="flex min-h-svh items-center justify-center px-6 py-12">
       <Card className="w-full max-w-md border-border bg-card shadow-none">
         <CardContent className="px-10 pt-10">
           <div>
             <Link
-              href={backHref}
+              href={"/signin"}
               className="mb-8 inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="size-3.5" />
@@ -147,7 +128,7 @@ function VerifyOtp() {
             <p className="mt-4 max-w-90 text-[14px] leading-[1.65] text-muted-foreground">
               We sent a 6-digit verification code to{" "}
               <span className="font-medium text-foreground">
-                {email ?? "your email address"}
+                your email address
               </span>
               .
             </p>
@@ -235,7 +216,7 @@ function VerifyOtp() {
           <p className="text-[13px] text-muted-foreground">
             Wrong email?{" "}
             <Link
-              href={backHref}
+              href={"/signin"}
               className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
             >
               Go back

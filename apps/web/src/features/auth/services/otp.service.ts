@@ -2,28 +2,41 @@ import { ApiError } from "@/lib/api/ApiError";
 import { redis } from "@repo/redis";
 import crypto from "node:crypto";
 
-const OTP_TTL_SECONDS = 30; // 5 min for prod.
+const OTP_TTL_SECONDS = 300; // 5 min for prod.
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_LIMIT = 3;
 const OTP_RESEND_WINDOW_SECONDS = 900; // 15 min
-type otpPurpose = "signin" | "signup";
+
+type OtpPurpose = "signin" | "signup";
+
+interface PendingAuthData {
+  email: string;
+  purpose: OtpPurpose;
+  first_name?: string;
+  last_name?: string;
+}
+
 // Generate 6-digit numeric OTP
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
 // Returns OtpKey in one const format eg:- opt:98765437 (otp:phone_number)
-const otpKey = (email: string, purpose: otpPurpose) =>
+const otpKey = (email: string, purpose: OtpPurpose) =>
   `otp:${purpose}:${email}`;
 
 // Returns key for attempts
-const otpAttemptsKey = (email: string, purpose: otpPurpose) =>
+const otpAttemptsKey = (email: string, purpose: OtpPurpose) =>
   `otp:attempts:${purpose}:${email}`;
 
 const otpLimitKey = (email: string) => `otp:resend-count:${email}`;
-const signupMetaKey = (email: string) => `otp:signup-meta:${email}`;
 
 const hashOtp = (otp: string): string =>
   crypto.createHash("sha256").update(otp).digest("hex");
 
+// used during email verification and acc creation in signup
+const pendingAuthKey = (pendingAuthId: string) =>
+  `pending-auth:${pendingAuthId}`;
+
+// Rate-limiter
 async function checkResendLimit(email: string): Promise<void> {
   const count = await redis.incr(otpLimitKey(email));
 
@@ -36,18 +49,42 @@ async function checkResendLimit(email: string): Promise<void> {
   }
 }
 
-export const getUserMetadata = async (emial: string) =>
-  await redis.get(signupMetaKey(emial));
+// Creates the pending-auth record and returns the opaque id to put in the cookie.
+export const createPendingAuth = async (
+  data: PendingAuthData
+): Promise<string> => {
+  const pendingAuthId = crypto.randomUUID();
+
+  await redis.set(
+    pendingAuthKey(pendingAuthId),
+    JSON.stringify(data),
+    "EX",
+    OTP_TTL_SECONDS
+  );
+
+  return pendingAuthId;
+};
+
+export const getPendingAuth = async (
+  pendingAuthId: string
+): Promise<PendingAuthData> => {
+  const raw = await redis.get(pendingAuthKey(pendingAuthId));
+
+  if (!raw) {
+    throw new ApiError(400, "Session expired. Please start again.");
+  }
+
+  return JSON.parse(raw) as PendingAuthData;
+};
+
+export const deletePendingAuth = async (
+  pendingAuthId: string
+): Promise<void> => {
+  await redis.del(pendingAuthKey(pendingAuthId));
+};
 
 // Issue OTP and store in redis
-export const issueOtp = async (
-  email: string,
-  purpose: otpPurpose,
-  metadata?: {
-    first_name: string;
-    last_name: string;
-  }
-) => {
+export const issueOtp = async (email: string, purpose: OtpPurpose) => {
   // check if limit is exceeded or not.
   await checkResendLimit(email);
   // generate opt
@@ -58,21 +95,12 @@ export const issueOtp = async (
   // delete any old attempts
   await redis.del(otpAttemptsKey(email, purpose));
 
-  // store metadata only for signup (we will need it when we verify otp to create user in DB)
-  if (purpose === "signup" && metadata) {
-    await redis.set(
-      signupMetaKey(email),
-      JSON.stringify(metadata),
-      "EX",
-      OTP_TTL_SECONDS
-    );
-  }
   return otp; // returning plain otp so system can mail it to user via resend.
 };
 
 export const verifyOtp = async (
   email: string,
-  purpose: otpPurpose,
+  purpose: OtpPurpose,
   submittedOtp: string
 ) => {
   // check if otp exist
