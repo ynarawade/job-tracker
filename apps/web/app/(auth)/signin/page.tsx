@@ -51,7 +51,7 @@ function SignInPage() {
         toast.error(result.message);
         return;
       }
-
+      toast.success(result.message);
       router.push(`/verify-otp`);
     } catch {
       toast.error("Couldn't reach the server. Try again.");
