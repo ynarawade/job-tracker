@@ -17,31 +17,18 @@ import { actionHandler } from "@/lib/api/ActionHandler";
 import { ApiError } from "@/lib/api/ApiError";
 import { createApiResponse } from "@/lib/api/ApiResponse";
 import { validate } from "@/lib/api/validate";
-import { clearPendingAuthCookie, getPendingAuthCookie } from "@/lib/cookie";
+import {
+  clearPendingAuthCookie,
+  getPendingAuthCookie,
+  setAuthCookies,
+} from "@/lib/cookie";
 import { prisma } from "@repo/db";
-import { cookies } from "next/headers";
 
 async function issueSessionCookies(userId: string) {
   const { sessionId, refreshToken } = await createSession(userId);
   const accessToken = signAccessToken({ userId, sessionId });
 
-  const cookieStore = await cookies();
-
-  cookieStore.set("access_token", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 15, // 15 min, matches access token expiry
-  });
-
-  cookieStore.set("refresh_token", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days, matches session TTL
-  });
+  await setAuthCookies(accessToken, refreshToken);
 }
 
 const verifyOtpAction = actionHandler(async (formData: VerifyOtpFormValues) => {

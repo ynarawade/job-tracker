@@ -1,58 +1,90 @@
-import { isSessionValid } from "@/features/auth/services/session.service";
-import { verifyAccessToken } from "@/features/auth/services/token.service";
+import {
+  isSessionValid,
+  rotateRefreshToken,
+} from "@/features/auth/services/session.service";
+import {
+  signAccessToken,
+  verifyAccessToken,
+} from "@/features/auth/services/token.service";
 import { NextRequest, NextResponse } from "next/server";
 
-// Run on Node.js runtime, not Edge — required since jsonwebtoken and
-// ioredis (@repo/redis) both use Node APIs unavailable on Edge.
 export const runtime = "nodejs";
 
-// Pages a logged-in user should NOT be able to visit (redirect to /dashboard)
 const AUTH_ROUTES = ["/signin", "/signup", "/verify-otp"];
-
-// Prefix for routes that require a logged-in user (redirect to /signin)
 const PROTECTED_PREFIXES = ["/dashboard"];
-
-async function getValidSession(request: NextRequest) {
-  const accessToken = request.cookies.get("access_token")?.value;
-  if (!accessToken) return null;
-
-  try {
-    const payload = verifyAccessToken(accessToken); // throws if expired/invalid signature
-    const valid = await isSessionValid(payload.userId, payload.sessionId);
-    return valid ? payload : null;
-  } catch {
-    return null; // expired or tampered token
-  }
-}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = await getValidSession(request);
+
+  const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
+
+  let isAuthenticated = false;
+  let newCookies: { accessToken: string; refreshToken: string } | null = null;
+
+  if (accessToken) {
+    try {
+      const payload = verifyAccessToken(accessToken);
+      isAuthenticated = await isSessionValid(payload.userId, payload.sessionId);
+    } catch {
+      // expired/invalid — fall through to rotation attempt below
+    }
+  }
+
+  if (!isAuthenticated && refreshToken) {
+    const rotated = await rotateRefreshToken(refreshToken);
+    if (rotated) {
+      isAuthenticated = true;
+      newCookies = {
+        accessToken: signAccessToken({
+          userId: rotated.userId,
+          sessionId: rotated.sessionId,
+        }),
+        refreshToken: rotated.refreshToken,
+      };
+    }
+  }
 
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
   const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   );
 
-  // Requirement 1: logged-in users can't reach signup/signin/verify-otp
-  if (isAuthRoute && session) {
+  if (isAuthRoute && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Requirement 2: logged-out users can't reach protected routes
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !isAuthenticated) {
     const signInUrl = new URL("/signin", request.url);
-    // Preserve where they were trying to go, so we can send them back
-    // after a successful login instead of always landing on /dashboard.
     signInUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(signInUrl);
+    const response = NextResponse.redirect(signInUrl);
+    response.cookies.delete("access_token");
+    response.cookies.delete("refresh_token");
+    return response;
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  if (newCookies) {
+    response.cookies.set("access_token", newCookies.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 15,
+    });
+    response.cookies.set("refresh_token", newCookies.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+
+  return response;
 }
 
-// Only run middleware on routes that actually need it — skips static
-// assets, images, and Next internals for performance.
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)",
