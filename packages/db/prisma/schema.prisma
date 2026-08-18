@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,21 +8,67 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(uuid())
-  email          String     @unique
-  email_verified Boolean
-  aut_method     AuthMethod
-  created_at     DateTime   @default(now())
-  updated_at     DateTime   @updatedAt
-  profiles       Profile?
+  id               String           @id @default(uuid())
+  email            String           @unique
+  email_verified   Boolean
+  aut_method       AuthMethod
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  profiles         Profile?
+  job_applications JobApplication[]
 }
 
 model Profile {
-  user_id    String  @id
-  user       User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  avatar_url String?
-  first_name String
-  last_name  String
+  user_id       String  @id
+  user          User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  avatar_url    String?
+  first_name    String
+  last_name     String
+  followup_freq Int     @default(7)
+}
+
+model JobApplication {
+  id                     String                @id @default(uuid())
+  user_id                String
+  user                   User                  @relation(fields: [user_id], references: [id])
+  job_title              String
+  job_url                String
+  company                String
+  jd_text                String
+  jd_formatted           String
+  contact_mail           String?
+  location               String?
+  location_type          JobLocationType?
+  salary_min             Decimal?
+  salary_max             Decimal?
+  salary_currency        JobSlaryCurrencyType?
+  skills                 String[]
+  status                 JobApplicationStatus  @default(APPLIED)
+  platform               String
+  followup_freq_override Int?
+  created_at             DateTime              @default(now())
+  updated_at             DateTime              @updatedAt
+}
+
+enum JobSlaryCurrencyType {
+  INR
+  USD
+  EUR
+}
+
+enum JobApplicationStatus {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  REJECTED
+  GHOSTED
+}
+
+enum JobLocationType {
+  REMOTE
+  ONSITE
+  HYBRID
 }
 
 enum AuthMethod {

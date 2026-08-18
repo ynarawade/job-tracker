@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { Instrument_Serif, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
@@ -44,7 +45,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
           <Toaster />
         </ThemeProvider>
       </body>
