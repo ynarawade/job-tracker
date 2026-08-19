@@ -20,12 +20,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { getInitials } from "@/lib/utils/getUserAvatarInitials";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
     avatar: string;
   };
@@ -42,13 +44,6 @@ export function NavUser({
     });
   }
 
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -59,13 +54,15 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-colors duration-200"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={user.first_name} />
                 <AvatarFallback className="rounded-lg">
-                  {initials}
+                  {getInitials(user.first_name, user.last_name)}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">
+                  {getInitials(user.first_name, user.last_name)}
+                </span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDownIcon className="ml-auto size-4" />
@@ -80,13 +77,18 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage
+                    src={user.avatar}
+                    alt={getInitials(user.first_name, user.last_name)}
+                  />
                   <AvatarFallback className="rounded-lg">
-                    {initials}
+                    {getInitials(user.first_name, user.last_name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">
+                    {getInitials(user.first_name, user.last_name)}
+                  </span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>

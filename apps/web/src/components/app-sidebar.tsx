@@ -18,8 +18,9 @@ import {
 
 const data = {
   user: {
-    name: "Yadnesh",
-    email: "yadnesh@example.com",
+    first_name: "Yadnesh",
+    last_name: "Narawade",
+    email: "yadnesh@gmail.com",
     avatar: "",
   },
   navMain: [
@@ -44,13 +45,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/dashboard">
-                <span className="flex size-7 items-end justify-center gap-[3px] rounded-md bg-primary px-1.5 pb-2">
-                  <span className="h-1.5 w-[3px] rounded-full bg-primary-foreground/80" />
-                  <span className="h-2.5 w-[3px] rounded-full bg-primary-foreground" />
-                  <span className="h-1 w-[3px] rounded-full bg-primary-foreground/60" />
+                <span className="flex size-7 items-end justify-center gap-0.75 rounded-md bg-primary px-1.5 pb-2">
+                  <span className="h-1.5 w-0.75 rounded-full bg-primary-foreground/80" />
+                  <span className="h-2.5 w-0.75 rounded-full bg-primary-foreground" />
+                  <span className="h-1 w-0.75 rounded-full bg-primary-foreground/60" />
                 </span>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Cadence</span>
+                <div className="grid flex-1 text-left text-lg leading-tight">
+                  <span className="truncate  font-heading">Cadence</span>
                 </div>
               </a>
             </SidebarMenuButton>
