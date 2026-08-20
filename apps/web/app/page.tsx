@@ -64,10 +64,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <a href="/" className="flex items-center gap-2.5">
-          <span className="flex size-7 items-end justify-center gap-[3px] rounded-md bg-primary px-1.5 pb-2">
-            <span className="h-1.5 w-[3px] rounded-full bg-primary-foreground/80" />
-            <span className="h-2.5 w-[3px] rounded-full bg-primary-foreground" />
-            <span className="h-1 w-[3px] rounded-full bg-primary-foreground/60" />
+          <span className="flex size-7 items-end justify-center gap-0.75 rounded-md bg-primary px-1.5 pb-2">
+            <span className="h-1.5 w-0.75 rounded-full bg-primary-foreground/80" />
+            <span className="h-2.5 w-0.75 rounded-full bg-primary-foreground" />
+            <span className="h-1 w-0.75 rounded-full bg-primary-foreground/60" />
           </span>
           <span className="font-heading text-xl tracking-tight">Cadence</span>
         </a>
