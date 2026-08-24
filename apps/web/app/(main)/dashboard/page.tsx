@@ -368,19 +368,15 @@ function Dashboard() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
-                <TableHead className="w-[280px] py-3 pl-4 pr-2">
+                <TableHead className="w-70 py-3 pl-4 pr-2">
                   Role & Company
                 </TableHead>
-                <TableHead className="w-[120px] py-3 px-2">Status</TableHead>
-                <TableHead className="w-[150px] py-3 px-2">Location</TableHead>
-                <TableHead className="w-[140px] py-3 px-2">
-                  Salary Range
-                </TableHead>
-                <TableHead className="w-[220px] py-3 px-2">
-                  Tech Stack
-                </TableHead>
-                <TableHead className="w-[100px] py-3 px-2">Applied</TableHead>
-                <TableHead className="w-[48px] py-3 pr-3 pl-0 text-right"></TableHead>
+                <TableHead className="w-30 py-3 px-2">Status</TableHead>
+                <TableHead className="w-37.5 py-3 px-2">Location</TableHead>
+                <TableHead className="w-35 py-3 px-2">Salary Range</TableHead>
+                <TableHead className="w-55 py-3 px-2">Tech Stack</TableHead>
+                <TableHead className="w-25 py-3 px-2">Applied</TableHead>
+                <TableHead className="w-12 py-3 pr-3 pl-0 text-right"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -429,7 +425,7 @@ function Dashboard() {
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-1 text-xs text-foreground">
                         <MapPinIcon className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
-                        <span className="truncate max-w-[125px]">
+                        <span className="truncate max-w-31.25">
                           {app.location || "N/A"}
                         </span>
                       </div>
@@ -452,7 +448,7 @@ function Dashboard() {
 
                   {/* Tech Stack */}
                   <TableCell className="py-3 px-2">
-                    <div className="flex flex-wrap gap-1 max-w-[210px] items-center">
+                    <div className="flex flex-wrap gap-1 max-w-52.5 items-center">
                       {app.skills.slice(0, 3).map((skill) => (
                         <Badge
                           key={skill}
