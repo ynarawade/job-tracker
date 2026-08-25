@@ -1,0 +1,21 @@
+{
+  "name": "@repo/queue",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
+    },
+    "./constants": {
+      "import": "./src/constants.ts",
+      "require": "./src/constants.ts"
+    }
+  },
+  "dependencies": {
+    "@repo/redis": "workspace:*",
+    "bullmq": "^6.2.0"
+  }
+}

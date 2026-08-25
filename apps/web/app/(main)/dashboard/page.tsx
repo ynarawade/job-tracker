@@ -1,16 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -18,9 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -30,16 +18,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import {
   ExternalLinkIcon,
   MailIcon,
   MapPinIcon,
   MoreHorizontalIcon,
-  PlusIcon,
   SearchIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
+import AddApplicationDialog from "./_dialog";
 
 type JobApplicationStatus =
   | "SAVED"
@@ -258,54 +245,7 @@ function Dashboard() {
         <h1 className="text-3xl font-bold font-heading tracking-tight text-foreground">
           Applications
         </h1>
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-2 shadow-xs h-9">
-              <PlusIcon className="h-4 w-4" />
-              Add application
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <form>
-              <DialogHeader>
-                <DialogTitle>Add job application</DialogTitle>
-                <DialogDescription>
-                  Paste the Job posting URL & JD then wait for magic.
-                </DialogDescription>
-              </DialogHeader>
-
-              <FieldGroup className="py-4 space-y-4">
-                <Field>
-                  <Label htmlFor="job-url">Job posting URL</Label>
-                  <Input
-                    id="job-url"
-                    name="job-url"
-                    placeholder="https://..."
-                  />
-                </Field>
-                <Field>
-                  <Label htmlFor="jd-text">Job Description</Label>
-                  <Textarea
-                    id="jd-text"
-                    name="jd_text"
-                    rows={5}
-                    placeholder="We are seeking a talented and motivated..."
-                  />
-                </Field>
-              </FieldGroup>
-
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline" type="button">
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button type="submit">Save Application</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <AddApplicationDialog />
       </div>
 
       {/* Understated Summary Stats Bar */}
