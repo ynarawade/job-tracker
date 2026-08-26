@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AddApplicationDialog from "@/features/job-application/components/AddJobApplicationDialog";
 import {
   ExternalLinkIcon,
   MailIcon,
@@ -26,7 +27,6 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
-import AddApplicationDialog from "./_dialog";
 
 type JobApplicationStatus =
   | "SAVED"

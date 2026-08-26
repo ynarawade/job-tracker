@@ -28,14 +28,14 @@ model Profile {
 }
 
 model JobApplication {
-  id                     String                @id @default(uuid())
+  id                     String                         @id @default(uuid())
   user_id                String
-  user                   User                  @relation(fields: [user_id], references: [id])
-  job_title              String
+  user                   User                           @relation(fields: [user_id], references: [id])
+  job_title              String?
   job_url                String
-  company                String
+  company                String?
   jd_text                String
-  jd_formatted           String
+  jd_formatted           String?
   contact_mail           String?
   location               String?
   location_type          JobLocationType?
@@ -43,17 +43,24 @@ model JobApplication {
   salary_max             Decimal?
   salary_currency        JobSlaryCurrencyType?
   skills                 String[]
-  status                 JobApplicationStatus  @default(APPLIED)
-  platform               String
+  status                 JobApplicationStatus?          @default(APPLIED)
+  platform               String?
   followup_freq_override Int?
-  created_at             DateTime              @default(now())
-  updated_at             DateTime              @updatedAt
+  extraction_state       JobApplicationExtractionStatus @default(PENDING)
+  created_at             DateTime                       @default(now())
+  updated_at             DateTime                       @updatedAt
 }
 
 enum JobSlaryCurrencyType {
   INR
   USD
   EUR
+}
+
+enum JobApplicationExtractionStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }
 
 enum JobApplicationStatus {
