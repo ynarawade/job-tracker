@@ -59,7 +59,7 @@ function AddApplicationDialog() {
           Add application
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[70vh]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Add job application</DialogTitle>
@@ -88,6 +88,7 @@ function AddApplicationDialog() {
               <Textarea
                 id="jd-text"
                 rows={5}
+                className="max-h-64 overflow-y-auto resize-none"
                 placeholder="We are seeking a talented and motivated..."
                 disabled={isSubmitting}
                 {...register("jdText")}

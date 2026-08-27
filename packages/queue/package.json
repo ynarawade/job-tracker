@@ -12,6 +12,10 @@
     "./constants": {
       "import": "./src/constants.ts",
       "require": "./src/constants.ts"
+    },
+    "./types": {
+      "import": "./src/types.ts",
+      "require": "./src/types.ts"
     }
   },
   "dependencies": {

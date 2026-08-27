@@ -25,10 +25,20 @@ const createApplicationWithExtraction = async (
   });
 
   try {
-    await jdExtractionQueue.add("extract", {
-      applicationId: jobEntry.id,
-      jdText: jobEntry.jd_text,
-    });
+    await jdExtractionQueue.add(
+      "extract",
+      {
+        applicationId: jobEntry.id,
+        jdText: jobEntry.jd_text,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000, // first retry after 2s, then 4s, then 8s
+        },
+      }
+    );
   } catch (err) {
     console.error("[createApplicationWithExtraction] Queue add failed:", err);
     await prisma.jobApplication.update({
