@@ -5,6 +5,7 @@ import type { JobApplicationListItem } from "@/features/job-application/types/jo
 import { useEffect, useRef, useState } from "react";
 
 const POLL_INTERVAL_MS = 2000;
+const MAX_POLL_DURATION_MS = 2 * 60 * 1000; // 2 minutes
 
 export function useJdExtractionPolling(
   initialApplications: JobApplicationListItem[]
@@ -13,8 +14,8 @@ export function useJdExtractionPolling(
   const applicationsRef = useRef(applications);
   applicationsRef.current = applications;
 
-  // Sync newly created applications in from fresh server props
-  // without clobbering already-polled local state
+  const pollingStartedAtRef = useRef<number | null>(null);
+
   useEffect(() => {
     setApplications((current) => {
       const currentIds = new Set(current.map((app) => app.id));
@@ -26,7 +27,6 @@ export function useJdExtractionPolling(
     });
   }, [initialApplications]);
 
-  // Re-runs whenever the number of pending applications changes.
   const pendingCount = applications.reduce(
     (count, app) => (app.extraction_state === "PENDING" ? count + 1 : count),
     0
@@ -34,10 +34,22 @@ export function useJdExtractionPolling(
 
   useEffect(() => {
     if (pendingCount === 0) {
+      pollingStartedAtRef.current = null;
       return;
     }
 
+    if (pollingStartedAtRef.current === null) {
+      pollingStartedAtRef.current = Date.now();
+    }
+
     const intervalId = setInterval(async () => {
+      const elapsed = Date.now() - (pollingStartedAtRef.current ?? Date.now());
+      if (elapsed > MAX_POLL_DURATION_MS) {
+        console.warn("[useJdExtractionPolling] giving up after timeout");
+        clearInterval(intervalId);
+        return;
+      }
+
       const pendingIds = applicationsRef.current
         .filter((app) => app.extraction_state === "PENDING")
         .map((app) => app.id);
