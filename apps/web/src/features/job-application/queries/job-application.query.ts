@@ -10,14 +10,6 @@ export async function getJobApplications(userId: string) {
     },
   });
 
-  console.log(
-    "SERVER APPLICATION STATES:",
-    applications.map((app) => ({
-      id: app.id,
-      state: app.extraction_state,
-    }))
-  );
-
   return applications.map((application) => ({
     id: application.id,
     job_title: application.job_title,
@@ -79,4 +71,29 @@ export async function getApplicationsExtractionStatus(
     skills: application.skills,
     platform: application.platform,
   }));
+}
+
+export async function getJobApplicationById(
+  userId: string,
+  applicationId: string
+) {
+  const application = await prisma.jobApplication.findUnique({
+    where: {
+      user_id: userId,
+      id: applicationId,
+    },
+  });
+  console.log("Job application", application);
+
+  if (!application) return null;
+
+  return {
+    ...application,
+    salary_min:
+      application.salary_min !== null ? Number(application.salary_min) : null,
+    salary_max:
+      application.salary_max !== null ? Number(application.salary_max) : null,
+    created_at: application.created_at.toISOString(),
+    updated_at: application.updated_at.toISOString(),
+  };
 }

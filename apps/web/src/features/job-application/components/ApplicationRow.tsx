@@ -1,14 +1,29 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { ApplicationRowSkeleton } from "@/features/job-application/components/ApplicationRowSkeleton";
-import { ApplicationStatusBadge } from "@/features/job-application/components/ApplicationStatusBadge";
+import { ApplicationStatusSelect } from "@/features/job-application/components/ApplicationStatusSelect";
 import { ExtractionStateCell } from "@/features/job-application/components/ExtractionStateCell";
 import {
   formatApplicationDate,
   formatSalary,
 } from "@/features/job-application/formatter";
 import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
-import { ExternalLinkIcon, MapPinIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  MailIcon,
+  MapPinIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
+import Link from "next/link";
 type ApplicationRowProps = {
   app: JobApplicationListItem;
 };
@@ -51,7 +66,7 @@ export function ApplicationRow({ app }: ApplicationRowProps) {
 
       {/* Status */}
       <TableCell className="py-3 px-2">
-        <ApplicationStatusBadge status={app.status} />
+        <ApplicationStatusSelect applicationId={app.id} status={app.status!} />
       </TableCell>
 
       {/* Location */}
@@ -103,31 +118,35 @@ export function ApplicationRow({ app }: ApplicationRowProps) {
 
       {/* Actions */}
       <TableCell className="py-3 pr-3 pl-0 text-right">
-        {/* <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground/70 hover:text-foreground hover:bg-muted/50"
-                      >
-                        <MoreHorizontalIcon className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View details</DropdownMenuItem>
-                      <DropdownMenuItem>Update status</DropdownMenuItem>
-                      {app.contact_mail && (
-                        <DropdownMenuItem className="gap-2">
-                          <MailIcon className="h-3.5 w-3.5" /> Send follow-up
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive focus:text-destructive">
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu> */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground/70 hover:text-foreground hover:bg-muted/50"
+            >
+              <MoreHorizontalIcon className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link href={`/dashboard/applications/${app.id}`}>
+                View details
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>Update status</DropdownMenuItem>
+            {app.contact_mail && (
+              <DropdownMenuItem className="gap-2">
+                <MailIcon className="h-3.5 w-3.5" /> Send follow-up
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive focus:text-destructive">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
