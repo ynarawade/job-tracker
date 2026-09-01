@@ -35,7 +35,7 @@ export default async function ApplicationDetailPage({
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Tech Stack & Keywords
                 </span>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 mt-1">
                   {application.skills.map((skill) => (
                     <Badge
                       key={skill}

@@ -24,13 +24,6 @@ export default function ApplicationsTable({
   initialApplications,
 }: ApplicationsTableProps) {
   const applications = useJdExtractionPolling(initialApplications);
-
-  console.log(
-    "Applications:",
-    applications.length,
-    "Pending:",
-    applications.filter((app) => app.extraction_state === "PENDING").length
-  );
   return (
     <div className="space-y-3 pt-1">
       {/* Cohesive Toolbar */}

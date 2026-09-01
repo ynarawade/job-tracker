@@ -12,6 +12,8 @@ export default async function Dashboard() {
 
   const applications = await getJobApplications(userId);
 
+  console.log("Job applications", applications.length);
+
   const activeCount = applications.filter(
     (application) =>
       application.status === "APPLIED" ||

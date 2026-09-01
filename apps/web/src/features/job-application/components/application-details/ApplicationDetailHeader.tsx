@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import EditDetailsDialog from "@/features/job-application/components/application-details/EditDetailsDialog";
 import { ApplicationStatusSelect } from "@/features/job-application/components/ApplicationStatusSelect";
+import DeleteJobApplicationDialog from "@/features/job-application/components/DeleteJobApplicationDialog";
 import { formatSalary } from "@/features/job-application/formatter";
 import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
 import {
@@ -32,6 +33,7 @@ export function ApplicationDetailHeader({
 }) {
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   return (
     <>
       <div className="space-y-4 border-b border-border pb-6">
@@ -92,7 +94,11 @@ export function ApplicationDetailHeader({
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:text-destructive gap-2">
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="gap-2"
+                  onSelect={() => setIsDeleteOpen(true)}
+                >
                   <Trash2Icon className="h-3.5 w-3.5" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -162,6 +168,11 @@ export function ApplicationDetailHeader({
         application={application}
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
+      />
+      <DeleteJobApplicationDialog
+        applicationId={application.id}
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
       />
     </>
   );
