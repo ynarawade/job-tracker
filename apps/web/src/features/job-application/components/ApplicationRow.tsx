@@ -19,6 +19,7 @@ import {
 import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
 import {
   ExternalLinkIcon,
+  FileInput,
   MailIcon,
   MapPinIcon,
   MoreHorizontalIcon,
@@ -132,19 +133,16 @@ export function ApplicationRow({ app }: ApplicationRowProps) {
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem asChild>
               <Link href={`/dashboard/applications/${app.id}`}>
-                View details
+                <FileInput className="h-3.5 w-3.5" /> View details
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Update status</DropdownMenuItem>
             {app.contact_mail && (
               <DropdownMenuItem className="gap-2">
                 <MailIcon className="h-3.5 w-3.5" /> Send follow-up
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              Delete
-            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
