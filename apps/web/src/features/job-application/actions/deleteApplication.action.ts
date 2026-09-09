@@ -23,7 +23,7 @@ const deleteJobApplication = actionHandler(async (applicationId: string) => {
   }
 
   revalidatePath("/dashboard");
-  revalidatePath(`/dashboard/application/${applicationId}`);
+  revalidatePath(`/dashboard/applications/${applicationId}`);
 
   return createApiResponse(200, "Application deleted");
 });

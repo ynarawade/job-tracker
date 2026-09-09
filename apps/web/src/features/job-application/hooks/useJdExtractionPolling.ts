@@ -18,12 +18,10 @@ export function useJdExtractionPolling(
 
   useEffect(() => {
     setApplications((current) => {
-      const currentIds = new Set(current.map((app) => app.id));
-      const newItems = initialApplications.filter(
-        (app) => !currentIds.has(app.id)
+      const currentById = new Map(current.map((app) => [app.id, app]));
+      return initialApplications.map(
+        (incoming) => currentById.get(incoming.id) ?? incoming
       );
-      if (newItems.length === 0) return current;
-      return [...newItems, ...current];
     });
   }, [initialApplications]);
 

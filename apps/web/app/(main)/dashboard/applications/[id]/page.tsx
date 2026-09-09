@@ -57,7 +57,7 @@ export default async function ApplicationDetailPage({
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Job Description
               </span>
-              <div className="rounded-lg border bg-card p-4 text-xs font-sans leading-relaxed text-foreground/90 whitespace-pre-wrap max-h-[600px] overflow-y-auto">
+              <div className="rounded-lg border bg-card p-4 text-xs font-sans leading-relaxed text-foreground/90 whitespace-pre-wrap max-h-150 overflow-y-auto">
                 {application.jd_text || "No job description text provided."}
               </div>
             </div>
