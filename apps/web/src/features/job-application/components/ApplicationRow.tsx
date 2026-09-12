@@ -34,12 +34,6 @@ type ApplicationRowProps = {
 export function ApplicationRow({ app }: ApplicationRowProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  if (app.platform?.toLowerCase().trim() === "indeed") {
-    console.log("Application name", app.job_title);
-
-    console.log("EXTRACTION STATE", app.extraction_state);
-  }
-
   if (app.extraction_state === "PENDING") {
     return <ApplicationRowSkeleton application={app} />;
   }

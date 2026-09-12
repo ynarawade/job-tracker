@@ -11,39 +11,67 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { deleteJobApplication } from "@/features/job-application/actions/deleteApplication.action";
+import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
+import { getQueryClient } from "@/lib/getQueryClient";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteJobApplicationDialogProps {
   open: boolean;
   onOpenChange(open: boolean): void;
   applicationId: string;
-  onDeleted?(): void;
 }
 
 function DeleteJobApplicationDialog({
   open,
   onOpenChange,
   applicationId,
-  onDeleted,
 }: DeleteJobApplicationDialogProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = getQueryClient();
 
-  async function handleConfirmDelete() {
-    setIsDeleting(true);
-    const response = await deleteJobApplication(applicationId);
-    setIsDeleting(false);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const res = await deleteJobApplication(applicationId);
+      if (res.statusCode >= 400) {
+        throw new Error(res.message ?? "Failed to delete application");
+      }
+      return res;
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["applications"] });
 
-    if (response.statusCode >= 400) {
-      toast.error(response.message);
-      return;
-    }
+      const previousApplications = queryClient.getQueryData<
+        JobApplicationListItem[]
+      >(["applications"]);
 
-    toast.success("Application deleted");
-    onOpenChange(false);
-    onDeleted?.();
-  }
+      queryClient.setQueryData<JobApplicationListItem[]>(
+        ["applications"],
+        (old) => (old ?? []).filter((a) => a.id !== applicationId)
+      );
+
+      onOpenChange(false);
+
+      return { previousApplications };
+    },
+    onSuccess: () => {
+      toast.success("Application deleted");
+    },
+    onError: (err, _variables, onMutateResult) => {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
+      queryClient.setQueryData(
+        ["applications"],
+        onMutateResult?.previousApplications
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,17 +85,23 @@ function DeleteJobApplicationDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" type="button" disabled={isDeleting}>
+            <Button
+              variant="outline"
+              type="button"
+              disabled={mutation.isPending}
+            >
               Cancel
             </Button>
           </DialogClose>
           <Button
             variant="destructive"
-            disabled={isDeleting}
-            onClick={handleConfirmDelete}
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
           >
-            {isDeleting && <Loader2Icon className="h-4 w-4 animate-spin" />}
-            {isDeleting ? "Deleting..." : "Confirm delete"}
+            {mutation.isPending && (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            )}
+            {mutation.isPending ? "Deleting..." : "Confirm delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

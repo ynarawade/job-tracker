@@ -22,8 +22,6 @@ type ApplicationsTableProps = {
 };
 
 export default function ApplicationsTable() {
-  // const applications = useJdExtractionPolling(initialApplications);
-
   const { data: applications } = useQuery({
     queryKey: ["applications"],
     queryFn: getApplicationsAction,

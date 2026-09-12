@@ -17,13 +17,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createJobApplication } from "@/features/job-application/actions/createApplication.action";
+import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
 
 import {
   createJobApplicationSchema,
   type createJobApplicationSchemaType,
 } from "@/features/job-application/validators/job.schema";
+import { getQueryClient } from "@/lib/getQueryClient";
 import { analyzeJdCompleteness } from "@/lib/utils/analyzeJdCompleteness";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { AlertTriangleIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -40,9 +43,74 @@ function AddApplicationDialog() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<createJobApplicationSchemaType>({
     resolver: zodResolver(createJobApplicationSchema),
+  });
+
+  const queryClient = getQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (data: createJobApplicationSchemaType) => {
+      const res = await createJobApplication(data);
+      if (res.statusCode >= 400) {
+        throw new Error(res.message ?? "Failed to add application");
+      }
+      return res;
+    },
+    onMutate: async (newApplication) => {
+      await queryClient.cancelQueries({ queryKey: ["applications"] });
+
+      const previousApplications = queryClient.getQueryData<
+        JobApplicationListItem[]
+      >(["applications"]);
+
+      const optimisticApp: JobApplicationListItem = {
+        id: `optimistic-${crypto.randomUUID()}`,
+        job_title: null,
+        company: null,
+        job_url: newApplication.jobUrl,
+        platform: null,
+        location: null,
+        location_type: null,
+        salary_min: null,
+        salary_max: null,
+        salary_currency: null,
+        skills: [],
+        status: "APPLIED",
+        extraction_state: "PENDING",
+        contact_mail: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData<JobApplicationListItem[]>(
+        ["applications"],
+        (old) => [optimisticApp, ...(old ?? [])]
+      );
+
+      resetDialogState();
+      setOpen(false);
+
+      return { previousApplications };
+    },
+    onError: (err, _newApplication, onMutateResult) => {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
+      queryClient.setQueryData(
+        ["applications"],
+        onMutateResult?.previousApplications
+      );
+    },
+    onSuccess: () => {
+      toast.success("Application added — extracting details in the background");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
   });
 
   async function onSubmit(data: createJobApplicationSchemaType) {
@@ -50,23 +118,13 @@ function AddApplicationDialog() {
       const { isLikelyIncomplete, missingSignals } = analyzeJdCompleteness(
         data.jdText
       );
-
       if (isLikelyIncomplete) {
         setIncompleteWarning(missingSignals);
         return;
       }
     }
 
-    const response = await createJobApplication(data);
-
-    if (response.statusCode >= 400) {
-      toast.error(response.message);
-      return;
-    }
-
-    toast.success("Application added — extracting details in the background");
-    resetDialogState();
-    setOpen(false);
+    mutation.mutate(data);
   }
 
   function resetDialogState() {
@@ -109,7 +167,7 @@ function AddApplicationDialog() {
               <Input
                 id="job-url"
                 placeholder="https://..."
-                disabled={isSubmitting}
+                disabled={mutation.isPending}
                 {...register("jobUrl")}
               />
               {errors.jobUrl && (
@@ -125,7 +183,7 @@ function AddApplicationDialog() {
                 rows={5}
                 className="max-h-64 overflow-y-auto resize-none"
                 placeholder="We are seeking a talented and motivated..."
-                disabled={isSubmitting}
+                disabled={mutation.isPending}
                 {...register("jdText", {
                   onChange: () => {
                     if (incompleteWarning) {
@@ -165,30 +223,34 @@ function AddApplicationDialog() {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isSubmitting}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={mutation.isPending}
+              >
                 Cancel
               </Button>
             </DialogClose>
             {incompleteWarning ? (
               <Button
                 type="button"
-                disabled={isSubmitting}
+                disabled={mutation.isPending}
                 onClick={handleSubmitAnyway}
                 className="bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700"
               >
-                {isSubmitting ? (
+                {mutation.isPending ? (
                   <Loader2Icon className="h-4 w-4 animate-spin" />
                 ) : (
                   <AlertTriangleIcon className="h-4 w-4" />
                 )}
-                {isSubmitting ? "Saving..." : "Submit anyway"}
+                {mutation.isPending ? "Saving..." : "Submit anyway"}
               </Button>
             ) : (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending && (
                   <Loader2Icon className="h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting ? "Saving..." : "Save Application"}
+                {mutation.isPending ? "Saving..." : "Save Application"}
               </Button>
             )}
           </DialogFooter>
