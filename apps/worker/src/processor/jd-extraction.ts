@@ -12,7 +12,7 @@ async function markFailed(applicationId: string) {
   try {
     await prisma.jobApplication.update({
       where: { id: applicationId },
-      data: { extraction_status: "FAILED" },
+      data: { extraction_state: "FAILED" },
     });
   } catch (err) {
     console.error(
