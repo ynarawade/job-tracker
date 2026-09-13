@@ -12,14 +12,9 @@ import {
 } from "@/components/ui/table";
 import { getApplicationsAction } from "@/features/job-application/actions/getApplication.action";
 import ApplicationRow from "@/features/job-application/components/ApplicationRow";
-import type { JobApplicationListItem } from "@/features/job-application/types/job-application.types";
 import { useQuery } from "@tanstack/react-query";
 
 import { SearchIcon, SlidersHorizontalIcon } from "lucide-react";
-
-type ApplicationsTableProps = {
-  initialApplications: JobApplicationListItem[];
-};
 
 export default function ApplicationsTable() {
   const { data: applications } = useQuery({

@@ -26,7 +26,9 @@ import {
   type editJobApplicationSchemaInput,
   type editJobApplicationSchemaType,
 } from "@/features/job-application/validators/job.schema";
+import { getQueryClient } from "@/lib/getQueryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -67,22 +69,76 @@ function EditDetailsDialog({
     },
   });
 
-  async function onSubmit(data: editJobApplicationSchemaType) {
-    const response = await updateJobApplication(application.id, data);
+  const queryClient = getQueryClient();
 
-    if (response.statusCode >= 400) {
-      if (response.errors && response.errors.length > 0) {
-        response.errors.forEach(({ field, message }) => {
-          setError(field as keyof editJobApplicationSchemaType, { message });
-        });
-        return;
+  const mutation = useMutation({
+    mutationFn: async (data: editJobApplicationSchemaType) => {
+      const res = await updateJobApplication(application.id, data);
+      if (res.statusCode >= 400) {
+        if (res.errors && res.errors.length > 0) {
+          res.errors.forEach(({ field, message }) => {
+            setError(field as keyof editJobApplicationSchemaType, { message });
+          });
+          return;
+        }
+        throw new Error(res.message ?? "Failed to add application");
       }
-      toast.error(response.message);
-      return;
-    }
+      return res;
+    },
+    onMutate: async (data: editJobApplicationSchemaType) => {
+      await queryClient.cancelQueries({
+        queryKey: ["application", application.id],
+      });
 
-    toast.success("Application updated");
-    onOpenChange(false);
+      const ogApplication = queryClient.getQueryData<JobApplicationListItem>([
+        "application",
+        application.id,
+      ]);
+
+      const optimisticUpdate: JobApplicationListItem = {
+        ...application,
+        job_title: data.jobTitle,
+        company: data.company,
+        location: data.location,
+        location_type: data.locationType,
+        salary_min: data.salaryMin,
+        salary_max: data.salaryMax,
+        salary_currency: data.salaryCurrency,
+        contact_mail: data.contactMail,
+      };
+
+      queryClient.setQueryData<JobApplicationListItem>(
+        ["application", application.id],
+        (old) => optimisticUpdate
+      );
+
+      handleOpenChange(false);
+
+      return { ogApplication };
+    },
+    onError: (err, _newApplication, onMutateResult) => {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
+      queryClient.setQueryData(
+        ["application", application.id],
+        onMutateResult?.ogApplication
+      );
+    },
+    onSuccess: () => {
+      toast.success("Application updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["application", application.id],
+      });
+    },
+  });
+
+  async function onSubmit(data: editJobApplicationSchemaType) {
+    mutation.mutate(data);
   }
 
   function handleOpenChange(nextOpen: boolean) {
