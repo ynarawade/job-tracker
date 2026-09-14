@@ -39,6 +39,12 @@ interface EditDetailsDialogProps {
   onOpenChange(open: boolean): void;
 }
 
+class FieldValidationError extends Error {
+  constructor(public errors: { field: string; message: string }[]) {
+    super("Validation failed");
+  }
+}
+
 function EditDetailsDialog({
   application,
   open,
@@ -76,10 +82,7 @@ function EditDetailsDialog({
       const res = await updateJobApplication(application.id, data);
       if (res.statusCode >= 400) {
         if (res.errors && res.errors.length > 0) {
-          res.errors.forEach(({ field, message }) => {
-            setError(field as keyof editJobApplicationSchemaType, { message });
-          });
-          return;
+          throw new FieldValidationError(res.errors);
         }
         throw new Error(res.message ?? "Failed to add application");
       }

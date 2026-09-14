@@ -6,9 +6,9 @@ import {
   getJobApplications,
 } from "@/features/job-application/queries/job-application.query";
 
-export async function getApplicationsAction() {
+export async function getApplicationsAction(page: number = 1) {
   const userId = await getCurrentUserId();
-  return getJobApplications(userId);
+  return getJobApplications(userId, page);
 }
 
 export async function getApplicationByIdAction(id: string) {
