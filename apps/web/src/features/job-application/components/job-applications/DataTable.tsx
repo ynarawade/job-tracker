@@ -95,6 +95,17 @@ export default function ApplicationsTable({
     },
   });
 
+  // function customSearch(searchVal: string, jobTitle: string, company: string) {
+  //   const search = searchVal.trim().toLocaleLowerCase();
+  //   const a = jobTitle.trim().toLocaleLowerCase();
+  //   const b = company.trim().toLocaleLowerCase();
+
+  //   if (a.includes(search) || b.includes(search)) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
+
   const visibleColumnCount = table.getVisibleLeafColumns().length;
 
   return (
